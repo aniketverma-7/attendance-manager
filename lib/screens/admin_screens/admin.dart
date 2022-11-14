@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/screens/admin_screens/add_edit_faculty.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_subject.dart';
+import 'package:shop_app/screens/admin_screens/view_faculty.dart';
+import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_student.dart';
 import 'package:shop_app/widgets/admin_item.dart';
 
 import '../../models/subject.dart';
 import '../../providers/subject_provider.dart';
+import '../../widgets/admin_drawer.dart';
+import 'add_edit_branch.dart';
 
 class AdminPanel extends StatefulWidget {
   @override
@@ -20,7 +25,9 @@ class _AdminPanelState extends State<AdminPanel> {
     'Add Faculty',
     'View Faculty',
     'Add Subject',
-    'View Subject'
+    'View Subject',
+    'Add Branch',
+    'View Branch',
   ];
 
   var _isInit = false;
@@ -50,6 +57,7 @@ class _AdminPanelState extends State<AdminPanel> {
       appBar: AppBar(
         title: const Text('Admin Panel'),
       ),
+      drawer: AdminDrawer(),
       body: (_isLoading)
           ? const Center(
               child: CircularProgressIndicator(),
@@ -76,28 +84,30 @@ class _AdminPanelState extends State<AdminPanel> {
                 break;
 
               case 1:
-                print("d");
+                Navigator.of(context).pushNamed(ViewStudents.routeName);
                 break;
 
               case 2:
-                print("d");
+                Navigator.of(context).pushNamed(FacultyScreen.routeName);
                 break;
 
               case 3:
-                print("d");
+                Navigator.of(context).pushNamed(ViewFaculty.routeName);
                 break;
 
               case 4:
-                Navigator.of(context).pushNamed(AddSubject.routeName,
-                    arguments: Subject(
-                      id: "",
-                      subjectCode: '',
-                      subjectName: '',
-                    ));
+                Navigator.of(context).pushNamed(AddSubject.routeName);
                 break;
 
               case 5:
                 Navigator.of(context).pushNamed(ViewSubjects.routeName);
+                break;
+
+              case 6:
+                Navigator.of(context).pushNamed(BranchScreen.routeName);
+                break;
+
+              case 7:
                 break;
             }
           }, index);

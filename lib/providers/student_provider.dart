@@ -51,13 +51,14 @@ class Students with ChangeNotifier {
         year: year,
         subjects: subjects,
       ));
+
       notifyListeners();
     } catch (error) {
       rethrow;
     }
   }
 
-  Future<void> updateSubject(
+  Future<void> updateStudent(
     String id,
     String name,
     String enrollment,
@@ -70,7 +71,7 @@ class Students with ChangeNotifier {
       final index = _students.indexWhere((element) => element.id == id);
 
       final Uri uri = Uri.parse(
-          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/student/$id.json");
+          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/students/$id.json");
 
       await http.patch(uri,
           body: json.encode({
@@ -80,6 +81,11 @@ class Students with ChangeNotifier {
             'branch': branch,
             'year': year,
             'subjects': subjects
+                .map((subject) => {
+              'id': subject.id,
+              'subjectName': subject.subjectName,
+              'subjectCode': subject.subjectCode,
+            }).toList()
           }));
 
       _students[index] = Student(
@@ -97,35 +103,41 @@ class Students with ChangeNotifier {
     }
   }
 
-  Future<void> fetchSubjects() async {
+  Future<void> fetchStudent() async {
     try {
       final url = Uri.parse(
-          'https://attendance-manager-413cc-default-rtdb.firebaseio.com/subjects.json');
+          'https://attendance-manager-413cc-default-rtdb.firebaseio.com/students.json');
       final response = await http.get(url);
       List<Student> loadedStudent = [];
       final data = json.decode(response.body) as Map<String, dynamic>;
-      if (data != null) {
-        data.forEach((studentId, studentData) {
-          final name = studentData['name'];
-          final enrollment = studentData['enrollment'];
-          final email = studentData['email'];
-          final branch = studentData['branch'];
-          final year = studentData['year'];
-          final subjects = studentData['subjects'];
-          final student = Student(
-            id: studentData['name'],
-            name: name,
-            email: email,
-            enrollment: enrollment,
-            branch: branch,
-            year: year,
-            subjects: subjects,
-          );
-          loadedStudent.add(student);
+      data.forEach((studentId, studentData) {
+        final name = studentData['name'];
+        final enrollment = studentData['enrollment'];
+        final email = studentData['email'];
+        final branch = studentData['branch'];
+        final year = studentData['year'];
+        final s = studentData['subjects'];
+        final List<Subject> subjects = [];
+        s.forEach((element) {
+          subjects.add(Subject(
+            id: element['id'],
+            subjectCode: element['subjectCode'],
+            subjectName: element['subjectName'],
+          ));
         });
-        _students = loadedStudent;
-        notifyListeners();
-      }
+        final student = Student(
+          id: studentId,
+          name: name,
+          email: email,
+          enrollment: enrollment,
+          branch: branch,
+          year: year,
+          subjects: subjects,
+        );
+        loadedStudent.add(student);
+      });
+      _students = loadedStudent;
+      notifyListeners();
     } catch (error) {
       rethrow;
     }
@@ -135,15 +147,15 @@ class Students with ChangeNotifier {
     return [..._students];
   }
 
-  Future<void> removeStudent(String subjectId) async {
+  Future<void> removeStudent(String studentId) async {
     try {
-      final index = _students.indexWhere((element) => element.id == subjectId);
+      final index = _students.indexWhere((element) => element.id == studentId);
       final existingSubject = _students[index];
       _students.removeAt(index);
       notifyListeners();
 
       final Uri uri = Uri.parse(
-          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/subjects/$subjectId.json");
+          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/students/$studentId.json");
       final response = await http.delete(uri);
       if (response.statusCode >= 400) {
         _students.insert(index, existingSubject);

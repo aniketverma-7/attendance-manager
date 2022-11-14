@@ -18,9 +18,9 @@ class _StudentScreenState extends State<StudentScreen> {
   var _isLoading = false;
   var _isInit = false;
   final _formKey = GlobalKey<FormState>();
-  List? subjectList = [];
+  List? subjectList;
 
-  var student = Student(
+  var _student = Student(
     id: '',
     name: '',
     email: '',
@@ -31,10 +31,24 @@ class _StudentScreenState extends State<StudentScreen> {
   );
 
   @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    if (!_isInit) {
+      final student = ModalRoute.of(context)!.settings.arguments;
+      subjectList = [];
+      if (student != null) {
+        _student = student as Student;
+        _isInit = true;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Add Students'),
+          title: Text((_student.id.isNotEmpty)?'Update Student':'Add Students'),
         ),
         body: (_isLoading)
             ? const Center(
@@ -44,43 +58,85 @@ class _StudentScreenState extends State<StudentScreen> {
   }
 
   void _saveForm() {
-
     if (_formKey.currentState!.validate()) {
-      bool e = false;
       _formKey.currentState!.save();
       setState(() {
         _isLoading = true;
       });
-      Provider.of<Students>(context,listen: false).addStudent(
-        student.name,
-        student.enrollment,
-        student.email,
-        student.branch,
-        student.year,
-        student.subjects,
-      ).catchError((error){
-        e = true;
-        print(error);
-        return showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Error while adding student record'),
-              content: const Text('Try again later'),
-              actions: [
-                FlatButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                      Navigator.of(ctx).pop();
-                    },
-                    child: const Text('Dismiss')),
-              ],
-            ));
-      }).then((_){
-        if(!e){
-          return showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Student Added'),
+
+      if (_student.id.isNotEmpty) {
+        _updateStudent();
+      } else {
+        _addStudent();
+      }
+    }
+  }
+
+  void _updateStudent() {
+    bool e = false;
+    Provider.of<Students>(context, listen: false).updateStudent(
+        _student.id,
+        _student.name,
+        _student.enrollment,
+        _student.email,
+        _student.branch,
+        _student.year,
+        _student.subjects)
+        .catchError((error) {
+          print(error);
+      return showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Error while updating student'),
+            content: const Text('Try again later'),
+            actions: [
+              FlatButton(
+                  onPressed: () {
+                    e = true;
+                    Navigator.of(ctx).pop();
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Dismiss')),
+            ],
+          ));
+    }).then((_) {
+       if(!e){
+         return showDialog(
+             context: context,
+             builder: (ctx) => AlertDialog(
+               title: const Text('Student Record Updated'),
+               actions: [
+                 FlatButton(
+                     onPressed: () {
+                       Navigator.of(ctx).pop();
+                       Navigator.of(ctx).pop();
+                     },
+                     child: const Text('Dismiss')),
+               ],
+             ));
+       }
+    });
+  }
+
+  void _addStudent() {
+    bool e = false;
+    Provider.of<Students>(context, listen: false)
+        .addStudent(
+      _student.name,
+      _student.enrollment,
+      _student.email,
+      _student.branch,
+      _student.year,
+      _student.subjects,
+    )
+        .catchError((error) {
+      e = true;
+      print("Error in save form: " + error);
+      return showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+                title: const Text('Error while adding student record'),
+                content: const Text('Try again later'),
                 actions: [
                   FlatButton(
                       onPressed: () {
@@ -90,15 +146,27 @@ class _StudentScreenState extends State<StudentScreen> {
                       child: const Text('Dismiss')),
                 ],
               ));
-        }
-        else{
-          setState(() {
-            _isLoading = false;
-          });
-        }
-
-      });
-    }
+    }).then((_) {
+      if (!e) {
+        return showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                  title: const Text('Student Added'),
+                  actions: [
+                    FlatButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.of(ctx).pop();
+                        },
+                        child: const Text('Dismiss')),
+                  ],
+                ));
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   Widget get studentForm {
@@ -121,20 +189,20 @@ class _StudentScreenState extends State<StudentScreen> {
                         labelText: 'Student Name',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: student.name,
+                    initialValue: _student.name,
                     onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
                     onSaved: (value) {
-                      student = Student(
-                        id: '',
+                      _student = Student(
+                        id: _student.id,
                         name: value.toString(),
-                        email: student.email,
-                        enrollment: student.enrollment,
-                        branch: student.branch,
-                        year: student.year,
-                        subjects: student.subjects,
+                        email: _student.email,
+                        enrollment: _student.enrollment,
+                        branch: _student.branch,
+                        year: _student.year,
+                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -146,20 +214,20 @@ class _StudentScreenState extends State<StudentScreen> {
                         labelText: 'Student Enrollment',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: student.enrollment,
+                    initialValue: _student.enrollment,
                     onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
                     onSaved: (value) {
-                      student = Student(
-                        id: '',
-                        name: student.name,
-                        email: student.email,
+                      _student = Student(
+                        id: _student.id,
+                        name: _student.name,
+                        email: _student.email,
                         enrollment: value.toString(),
-                        branch: student.branch,
-                        year: student.year,
-                        subjects: student.subjects,
+                        branch: _student.branch,
+                        year: _student.year,
+                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -171,20 +239,20 @@ class _StudentScreenState extends State<StudentScreen> {
                         labelText: 'Student Email',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: student.email,
+                    initialValue: _student.email,
                     onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
                     onSaved: (value) {
-                      student = Student(
-                        id: '',
-                        name: student.name,
+                      _student = Student(
+                        id: _student.id,
+                        name: _student.name,
                         email: value.toString(),
-                        enrollment: student.enrollment,
-                        branch: student.branch,
-                        year: student.year,
-                        subjects: student.subjects,
+                        enrollment: _student.enrollment,
+                        branch: _student.branch,
+                        year: _student.year,
+                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -196,20 +264,20 @@ class _StudentScreenState extends State<StudentScreen> {
                         labelText: 'Student Branch',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: student.branch,
+                    initialValue: _student.branch,
                     onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
                     onSaved: (value) {
-                      student = Student(
-                        id: '',
-                        name: student.name,
-                        email: student.email,
-                        enrollment: student.enrollment,
+                      _student = Student(
+                        id: _student.id,
+                        name: _student.name,
+                        email: _student.email,
+                        enrollment: _student.enrollment,
                         branch: value.toString(),
-                        year: student.year,
-                        subjects: student.subjects,
+                        year: _student.year,
+                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -222,20 +290,20 @@ class _StudentScreenState extends State<StudentScreen> {
                         labelText: 'Student Year',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: student.year,
+                    initialValue: _student.year,
                     onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
                     onSaved: (value) {
-                      student = Student(
-                        id: '',
-                        name: student.name,
-                        email: student.email,
-                        enrollment: student.enrollment,
-                        branch: student.branch,
+                      _student = Student(
+                        id: _student.id,
+                        name: _student.name,
+                        email: _student.email,
+                        enrollment: _student.enrollment,
+                        branch: _student.branch,
                         year: value.toString(),
-                        subjects: student.subjects,
+                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -265,13 +333,13 @@ class _StudentScreenState extends State<StudentScreen> {
                       subjectList?.asMap().forEach((key, value) {
                         subjects.add(value);
                       });
-                      student = Student(
-                        id: '',
-                        name: student.name,
-                        email: student.email,
-                        enrollment: student.enrollment,
-                        branch: student.branch,
-                        year: student.year,
+                      _student = Student(
+                        id: _student.id,
+                        name: _student.name,
+                        email: _student.email,
+                        enrollment: _student.enrollment,
+                        branch: _student.branch,
+                        year: _student.year,
                         subjects: subjects,
                       );
                     },

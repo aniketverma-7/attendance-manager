@@ -1,11 +1,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/faculty_provider.dart';
 import 'package:shop_app/providers/student_provider.dart';
 import 'package:shop_app/providers/subject_provider.dart';
+import 'package:shop_app/screens/admin_screens/add_edit_branch.dart';
+import 'package:shop_app/screens/admin_screens/add_edit_faculty.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_student.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_subject.dart';
 import 'package:shop_app/screens/admin_screens/admin.dart';
+import 'package:shop_app/screens/admin_screens/view_faculty.dart';
+import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
 
 import 'screens/authScreen.dart';
@@ -22,6 +27,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => Subjects()),
         ChangeNotifierProvider(create: (context) => Students()),
+        ChangeNotifierProvider(create: (context) => Faculties()),
       ],
       child: MaterialApp(
         title: 'Attendance Manager',
@@ -42,6 +48,10 @@ class MyApp extends StatelessWidget {
           AddSubject.routeName: (ctx)=> AddSubject(),
           ViewSubjects.routeName: (ctx)=> ViewSubjects(),
           StudentScreen.routeName: (ctx)=> StudentScreen(),
+          ViewStudents.routeName: (ctx)=> ViewStudents(),
+          FacultyScreen.routeName: (ctx)=> FacultyScreen(),
+          ViewFaculty.routeName: (ctx)=> ViewFaculty(),
+          BranchScreen.routeName: (ctx)=> BranchScreen(),
         },
       ),
     );
