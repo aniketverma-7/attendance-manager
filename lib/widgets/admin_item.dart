@@ -15,12 +15,15 @@ class AdminOption extends StatelessWidget {
         onTap: () {
           _onPressed(_index);
         },
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(),
-          ),
+        child: Card(
+          elevation: 5,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
           child: Center(
-            child: Text(_option),
+            child: Text(
+              _option,
+              style: const TextStyle(fontSize: 18),
+            ),
           ),
         ),
       ),

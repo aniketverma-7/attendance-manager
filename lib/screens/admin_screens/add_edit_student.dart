@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:multiselect_formfield/multiselect_formfield.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/models/branch.dart';
 
 import '../../models/student.dart';
-import '../../models/subject.dart';
+import '../../providers/branch_provider.dart';
 import '../../providers/student_provider.dart';
-import '../../providers/subject_provider.dart';
 
 class StudentScreen extends StatefulWidget {
   static const routeName = '/add-edit-student';
@@ -15,19 +14,20 @@ class StudentScreen extends StatefulWidget {
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-  var _isLoading = false;
+  var _isLoading = true;
   var _isInit = false;
   final _formKey = GlobalKey<FormState>();
   List? subjectList;
+  Branch selectedBranch = Branch(name: '', id: '');
+  final branchController = TextEditingController();
 
   var _student = Student(
     id: '',
     name: '',
     email: '',
     enrollment: '',
-    branch: '',
+    branch: Branch(name: '', id: ''),
     year: '',
-    subjects: [],
   );
 
   @override
@@ -41,14 +41,37 @@ class _StudentScreenState extends State<StudentScreen> {
         _student = student as Student;
         _isInit = true;
       }
+      var provider = Provider.of<Branches>(context, listen: false);
+      if (provider.branches.isEmpty) {
+        provider.fetchBranch().catchError((error) {
+          //TODO: Show alert dialog;
+        }).then((_) {
+          setState(() {
+            _isLoading = false;
+          });
+        });
+      }else{
+        branchController.text = _student.branch.name;
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    branchController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text((_student.id.isNotEmpty)?'Update Student':'Add Students'),
+          title: Text(
+              (_student.id.isNotEmpty) ? 'Update Student' : 'Add Students'),
         ),
         body: (_isLoading)
             ? const Center(
@@ -63,115 +86,72 @@ class _StudentScreenState extends State<StudentScreen> {
       setState(() {
         _isLoading = true;
       });
-
       if (_student.id.isNotEmpty) {
-        _updateStudent();
+        afterFuture(
+          Provider.of<Students>(context, listen: false).updateStudent(
+            _student.id,
+            _student.name,
+            _student.enrollment,
+            _student.email,
+            _student.branch,
+            _student.year,),
+          'Student record updated successfully',
+        );
       } else {
-        _addStudent();
+        afterFuture(
+          Provider.of<Students>(context, listen: false)
+              .addStudent(
+            _student.name,
+            _student.enrollment,
+            _student.email,
+            _student.branch,
+            _student.year,
+          ),
+          'Student record added successfully',
+        );
       }
     }
   }
 
-  void _updateStudent() {
-    bool e = false;
-    Provider.of<Students>(context, listen: false).updateStudent(
-        _student.id,
-        _student.name,
-        _student.enrollment,
-        _student.email,
-        _student.branch,
-        _student.year,
-        _student.subjects)
-        .catchError((error) {
-          print(error);
-      return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Error while updating student'),
-            content: const Text('Try again later'),
-            actions: [
-              FlatButton(
-                  onPressed: () {
-                    e = true;
-                    Navigator.of(ctx).pop();
-                    Navigator.of(ctx).pop();
-                  },
-                  child: const Text('Dismiss')),
-            ],
-          ));
-    }).then((_) {
-       if(!e){
-         return showDialog(
-             context: context,
-             builder: (ctx) => AlertDialog(
-               title: const Text('Student Record Updated'),
-               actions: [
-                 FlatButton(
-                     onPressed: () {
-                       Navigator.of(ctx).pop();
-                       Navigator.of(ctx).pop();
-                     },
-                     child: const Text('Dismiss')),
-               ],
-             ));
-       }
-    });
-  }
 
-  void _addStudent() {
-    bool e = false;
-    Provider.of<Students>(context, listen: false)
-        .addStudent(
-      _student.name,
-      _student.enrollment,
-      _student.email,
-      _student.branch,
-      _student.year,
-      _student.subjects,
-    )
-        .catchError((error) {
-      e = true;
-      print("Error in save form: " + error);
-      return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                title: const Text('Error while adding student record'),
-                content: const Text('Try again later'),
-                actions: [
-                  FlatButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        Navigator.of(ctx).pop();
-                      },
-                      child: const Text('Dismiss')),
-                ],
-              ));
+  void afterFuture(future, title) {
+    bool error = false;
+    future = future as Future<void>;
+    future.catchError((error) {
+      print(error);
+      error = true;
+      return showAlertDialog('Server error :(');
     }).then((_) {
-      if (!e) {
-        return showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-                  title: const Text('Student Added'),
-                  actions: [
-                    FlatButton(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          Navigator.of(ctx).pop();
-                        },
-                        child: const Text('Dismiss')),
-                  ],
-                ));
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
+      setState(() {
+        _isLoading = false;
+      });
+    }).then((_){
+      if(!error){
+        return showAlertDialog(title);
       }
     });
   }
 
+  Future showAlertDialog(String title) {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(title),
+          content: Text((title.contains('Server'))?'Try again later':''),
+          actions: [
+            FlatButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(ctx).pop();
+                },
+                child: const Text('Dismiss')),
+          ],
+        ));
+  }
+
   Widget get studentForm {
-    List<Subject> subjects =
-        Provider.of<Subjects>(context, listen: false).subjects;
+    List<Branch> branches =
+        Provider.of<Branches>(context, listen: false).branches;
 
     return Center(
       child: Container(
@@ -190,7 +170,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
                     initialValue: _student.name,
-                    onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
@@ -202,7 +181,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         enrollment: _student.enrollment,
                         branch: _student.branch,
                         year: _student.year,
-                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -215,7 +193,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
                     initialValue: _student.enrollment,
-                    onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
@@ -227,7 +204,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         enrollment: value.toString(),
                         branch: _student.branch,
                         year: _student.year,
-                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -240,7 +216,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
                     initialValue: _student.email,
-                    onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
@@ -252,7 +227,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         enrollment: _student.enrollment,
                         branch: _student.branch,
                         year: _student.year,
-                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -260,12 +234,44 @@ class _StudentScreenState extends State<StudentScreen> {
                 Container(
                   margin: const EdgeInsets.all(10),
                   child: TextFormField(
+                    controller: branchController,
+                    readOnly: true,
+                    onTap: () {
+                      showDialog<void>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              elevation: 10,
+                              content: StatefulBuilder(
+                                builder: (context, setState) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: List<Widget>.generate(
+                                        branches.length, (int index) {
+                                      return ListTile(
+                                        title: Text(branches[index].name),
+                                        leading: Radio<Branch>(
+                                          value: branches[index],
+                                          groupValue: selectedBranch,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedBranch = value!;
+                                              branchController.text = selectedBranch.name;
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    }),
+                                  );
+                                },
+                              ),
+                            );
+                          });
+                    },
                     decoration: const InputDecoration(
                         labelText: 'Student Branch',
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
-                    initialValue: _student.branch,
-                    onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
@@ -275,9 +281,8 @@ class _StudentScreenState extends State<StudentScreen> {
                         name: _student.name,
                         email: _student.email,
                         enrollment: _student.enrollment,
-                        branch: value.toString(),
+                        branch: selectedBranch,
                         year: _student.year,
-                        subjects: _student.subjects,
                       );
                     },
                   ),
@@ -291,7 +296,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         border: OutlineInputBorder()),
                     textInputAction: TextInputAction.next,
                     initialValue: _student.year,
-                    onFieldSubmitted: (_) {},
                     validator: (value) {
                       return null;
                     },
@@ -303,44 +307,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         enrollment: _student.enrollment,
                         branch: _student.branch,
                         year: value.toString(),
-                        subjects: _student.subjects,
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(10),
-                  child: MultiSelectFormField(
-                    autovalidate: AutovalidateMode.disabled,
-                    title: const Text('Subjects'),
-                    dialogShapeBorder: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12.0))),
-                    dataSource: [
-                      ...subjects.map((e) {
-                        return {"display": e.subjectName, "value": e};
-                      }).toList()
-                    ],
-                    textField: 'display',
-                    valueField: 'value',
-                    okButtonLabel: 'OK',
-                    cancelButtonLabel: 'CANCEL',
-                    border: const OutlineInputBorder(),
-                    initialValue: subjectList,
-                    onSaved: (value) {
-                      if (value == null) return;
-                      subjectList = value;
-                      List<Subject> subjects = [];
-                      subjectList?.asMap().forEach((key, value) {
-                        subjects.add(value);
-                      });
-                      _student = Student(
-                        id: _student.id,
-                        name: _student.name,
-                        email: _student.email,
-                        enrollment: _student.enrollment,
-                        branch: _student.branch,
-                        year: _student.year,
-                        subjects: subjects,
                       );
                     },
                   ),

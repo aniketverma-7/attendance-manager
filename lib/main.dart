@@ -1,17 +1,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/auth.dart';
+import 'package:shop_app/providers/branch_provider.dart';
+import 'package:shop_app/providers/class_provider.dart';
 import 'package:shop_app/providers/faculty_provider.dart';
 import 'package:shop_app/providers/student_provider.dart';
 import 'package:shop_app/providers/subject_provider.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_branch.dart';
+import 'package:shop_app/screens/admin_screens/add_edit_classes.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_faculty.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_student.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_subject.dart';
 import 'package:shop_app/screens/admin_screens/admin.dart';
+import 'package:shop_app/screens/admin_screens/view_branch.dart';
 import 'package:shop_app/screens/admin_screens/view_faculty.dart';
 import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
+import 'package:shop_app/screens/change_password.dart';
 
 import 'screens/authScreen.dart';
 
@@ -28,6 +34,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => Subjects()),
         ChangeNotifierProvider(create: (context) => Students()),
         ChangeNotifierProvider(create: (context) => Faculties()),
+        ChangeNotifierProvider(create: (context) => Branches()),
+        ChangeNotifierProvider(create: (context) => Classes()),
+        ChangeNotifierProvider(create: (context) => Auth()),
       ],
       child: MaterialApp(
         title: 'Attendance Manager',
@@ -43,7 +52,7 @@ class MyApp extends StatelessWidget {
           // is not restarted.
           primarySwatch: Colors.blue,
         ),
-        home: AdminPanel(),
+        home: UserLogin(),
         routes: {
           AddSubject.routeName: (ctx)=> AddSubject(),
           ViewSubjects.routeName: (ctx)=> ViewSubjects(),
@@ -52,6 +61,10 @@ class MyApp extends StatelessWidget {
           FacultyScreen.routeName: (ctx)=> FacultyScreen(),
           ViewFaculty.routeName: (ctx)=> ViewFaculty(),
           BranchScreen.routeName: (ctx)=> BranchScreen(),
+          ViewBranch.routeName: (ctx)=> ViewBranch(),
+          ClassScreen.routeName: (ctx)=> ClassScreen(),
+          ChangePasswordScreen.routeName: (ctx)=> ChangePasswordScreen(),
+          AdminPanel.routeName: (ctx)=> AdminPanel(),
         },
       ),
     );

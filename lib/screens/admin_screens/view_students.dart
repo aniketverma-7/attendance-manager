@@ -36,9 +36,6 @@ class _ViewStudentsState extends State<ViewStudents> {
         setState(() {
           _isLoading = false;
         });
-        if (message.isEmpty) {
-          students = Provider.of<Students>(context, listen: false).students;
-        }
       });
       _isInit = true;
     }
@@ -46,6 +43,9 @@ class _ViewStudentsState extends State<ViewStudents> {
 
   @override
   Widget build(BuildContext context) {
+    if (message.isEmpty) {
+      students = Provider.of<Students>(context).students;
+    }
     return Scaffold(
         appBar: AppBar(
           title: const Text('View Students'),

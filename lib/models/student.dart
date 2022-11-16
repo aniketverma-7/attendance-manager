@@ -1,13 +1,14 @@
 import 'package:shop_app/models/subject.dart';
 
+import 'branch.dart';
+
 class Student {
   final String id;
   final String name;
   final String enrollment;
   final String email;
-  final String branch;
+  final Branch branch;
   final String year;
-  final List<Subject> subjects;
 
   Student({
     required this.id,
@@ -16,11 +17,12 @@ class Student {
     required this.email,
     required this.branch,
     required this.year,
-    required this.subjects,
   });
+
+
 
   @override
   String toString() {
-    return 'Student{id: $id, name: $name, enrollment: $enrollment, email: $email, branch: $branch, year: $year, subjects: $subjects}';
+    return 'Student{id: $id, name: $name, enrollment: $enrollment, email: $email, branch: $branch, year: $year}';
   }
 }

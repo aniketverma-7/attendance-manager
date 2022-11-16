@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shop_app/providers/auth.dart';
 
-class UserLogin extends StatelessWidget {
+import 'admin_screens/admin.dart';
+
+class UserLogin extends StatefulWidget {
   static const routeName = '/auth';
+
+  @override
+  State<UserLogin> createState() => _UserLoginState();
+}
+
+class _UserLoginState extends State<UserLogin> {
+  final userController = TextEditingController();
+  final passwordController = TextEditingController();
+  var _isLoading = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    userController.dispose();
+    passwordController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +41,22 @@ class UserLogin extends StatelessWidget {
             end: Alignment.bottomLeft,
           ),
         ),
-        child: Container(
+        child: (_isLoading)
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : authBody,
+      ),
+    );
+  }
+
+  Widget get authBody {
+    return Container(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
+      height: MediaQuery.of(context).size.height,
+      child: Center(
+        child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               buildTextColumn(),
@@ -32,62 +68,125 @@ class UserLogin extends StatelessWidget {
     );
   }
 
+  void changeState(bool state) {
+    setState(() {
+      _isLoading = state;
+    });
+  }
+
+  void login() {
+    if (_formKey.currentState!.validate()) {
+      changeState(true);
+      bool e = false;
+      String userName = userController.text.toString();
+      String password = passwordController.text.toString();
+      Provider.of<Auth>(context, listen: false)
+          .loginUser(userName)
+          .catchError((error) {
+        e = true;
+        showAlertDialog(error.toString());
+      }).then((_) {
+        if (!e) {
+          if (Provider.of<Auth>(context, listen: false)
+              .verifyCredentials(password)) {
+            var providerTag =
+                Provider.of<Auth>(context, listen: false).tag.toString();
+            if (providerTag == 'FACULTY') {
+            } else if (providerTag == 'STUDENT') {
+            } else if (providerTag == 'ADMIN') {
+              Navigator.of(context).pushReplacementNamed(AdminPanel.routeName);
+            }
+          } else {
+            showAlertDialog("Invalid credentials for the user.");
+          }
+        }
+        changeState(false);
+      });
+    }
+  }
+
+  Future showAlertDialog(String title) {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text(title),
+              actions: [
+                FlatButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('Dismiss')),
+              ],
+            ));
+  }
+
   Widget buildTextColumn() {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(10),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                "Hi Student",
-                style: TextStyle(
-                    fontSize: 40,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
-              ),
-              Text(
-                "Login to continue",
-                style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white10,
-                    fontWeight: FontWeight.bold),
-              )
-            ]),
-      ),
+    return Container(
+      margin: const EdgeInsets.all(10),
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              "Hi",
+              style: TextStyle(
+                  fontSize: 40,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "Login to continue",
+              style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white10,
+                  fontWeight: FontWeight.bold),
+            )
+          ]),
     );
   }
 
   Widget buildAuthCard() {
-    return Expanded(
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(left: 15, right: 15, top: 50, bottom: 50),
-        child: Card(
-          color: Colors.white,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-          ),
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(left: 15, right: 15, top: 50, bottom: 50),
+      child: Card(
+        color: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+        ),
+        child: Form(
+          key: _formKey,
           child: SingleChildScrollView(
             padding: EdgeInsets.all(10),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
                   margin:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   child: TextFormField(
-                      maxLength: 12,
+                      validator: (value) {
+                        if (value.toString().isEmpty) {
+                          return "Please enter username";
+                        }
+                        return null;
+                      },
+                      controller: userController,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Enrollment Number',
+                        labelText: 'User ID',
                       )),
                 ),
                 Container(
                   margin:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   child: TextFormField(
+                      validator: (value) {
+                        if (value.toString().isEmpty) {
+                          return "Please enter password";
+                        }
+                        return null;
+                      },
+                      controller: passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -99,7 +198,7 @@ class UserLogin extends StatelessWidget {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: login,
                     child: const Padding(
                       padding: EdgeInsets.all(15),
                       child: Text(

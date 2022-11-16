@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_faculty.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_subject.dart';
+import 'package:shop_app/screens/admin_screens/view_branch.dart';
 import 'package:shop_app/screens/admin_screens/view_faculty.dart';
 import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
@@ -14,6 +15,9 @@ import '../../widgets/admin_drawer.dart';
 import 'add_edit_branch.dart';
 
 class AdminPanel extends StatefulWidget {
+
+  static const String routeName = "/admin-panel";
+
   @override
   State<AdminPanel> createState() => _AdminPanelState();
 }
@@ -30,6 +34,17 @@ class _AdminPanelState extends State<AdminPanel> {
     'View Branch',
   ];
 
+  var screenName = const [
+    StudentScreen.routeName,
+    ViewStudents.routeName,
+    FacultyScreen.routeName,
+    ViewFaculty.routeName,
+    AddSubject.routeName,
+    ViewSubjects.routeName,
+    BranchScreen.routeName,
+    ViewBranch.routeName,
+  ];
+
   var _isInit = false;
   var _isLoading = true;
 
@@ -38,7 +53,7 @@ class _AdminPanelState extends State<AdminPanel> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     if (!_isInit) {
-      Provider.of<Subjects>(context).fetchSubjects().catchError((error){
+      Provider.of<Subjects>(context).fetchSubjects().catchError((error) {
         setState(() {
           _isLoading = false;
         });
@@ -74,42 +89,11 @@ class _AdminPanelState extends State<AdminPanel> {
           childAspectRatio: 1,
           crossAxisCount: 2,
           crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+          mainAxisSpacing: 20,
         ),
         itemBuilder: (context, index) {
           return AdminOption(adminOption[index], (index) {
-            switch (index) {
-              case 0:
-                Navigator.of(context).pushNamed(StudentScreen.routeName);
-                break;
-
-              case 1:
-                Navigator.of(context).pushNamed(ViewStudents.routeName);
-                break;
-
-              case 2:
-                Navigator.of(context).pushNamed(FacultyScreen.routeName);
-                break;
-
-              case 3:
-                Navigator.of(context).pushNamed(ViewFaculty.routeName);
-                break;
-
-              case 4:
-                Navigator.of(context).pushNamed(AddSubject.routeName);
-                break;
-
-              case 5:
-                Navigator.of(context).pushNamed(ViewSubjects.routeName);
-                break;
-
-              case 6:
-                Navigator.of(context).pushNamed(BranchScreen.routeName);
-                break;
-
-              case 7:
-                break;
-            }
+            Navigator.of(context).pushNamed(screenName[index]);
           }, index);
         },
         itemCount: adminOption.length,

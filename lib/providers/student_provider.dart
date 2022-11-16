@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/branch.dart';
 import '../models/http_exception.dart';
 import '../models/student.dart';
 import '../models/subject.dart';
@@ -14,9 +15,8 @@ class Students with ChangeNotifier {
     String name,
     String enrollment,
     String email,
-    String branch,
+    Branch branch,
     String year,
-    List<Subject> subjects,
   ) async {
     try {
       final Uri uri = Uri.parse(
@@ -27,15 +27,11 @@ class Students with ChangeNotifier {
             'name': name,
             'email': email,
             'enrollment': enrollment,
-            'branch': branch,
+            'branch': {
+              'id': branch.id,
+              'name': branch.name,
+            },
             'year': year,
-            'subjects': subjects
-                .map((subject) => {
-                      'id': subject.id,
-                      'subjectName': subject.subjectName,
-                      'subjectCode': subject.subjectCode,
-                    })
-                .toList()
           }));
 
       final responseData = json.decode(response.body);
@@ -49,7 +45,6 @@ class Students with ChangeNotifier {
         enrollment: enrollment,
         branch: branch,
         year: year,
-        subjects: subjects,
       ));
 
       notifyListeners();
@@ -63,9 +58,8 @@ class Students with ChangeNotifier {
     String name,
     String enrollment,
     String email,
-    String branch,
+    Branch branch,
     String year,
-    List<Subject> subjects,
   ) async {
     try {
       final index = _students.indexWhere((element) => element.id == id);
@@ -78,14 +72,11 @@ class Students with ChangeNotifier {
             'name': name,
             'email': email,
             'enrollment': enrollment,
-            'branch': branch,
+            'branch': {
+              'id': branch.id,
+              'name': branch.name,
+            },
             'year': year,
-            'subjects': subjects
-                .map((subject) => {
-              'id': subject.id,
-              'subjectName': subject.subjectName,
-              'subjectCode': subject.subjectCode,
-            }).toList()
           }));
 
       _students[index] = Student(
@@ -95,7 +86,6 @@ class Students with ChangeNotifier {
         enrollment: enrollment,
         branch: branch,
         year: year,
-        subjects: subjects,
       );
       notifyListeners();
     } catch (error) {
@@ -116,23 +106,13 @@ class Students with ChangeNotifier {
         final email = studentData['email'];
         final branch = studentData['branch'];
         final year = studentData['year'];
-        final s = studentData['subjects'];
-        final List<Subject> subjects = [];
-        s.forEach((element) {
-          subjects.add(Subject(
-            id: element['id'],
-            subjectCode: element['subjectCode'],
-            subjectName: element['subjectName'],
-          ));
-        });
         final student = Student(
           id: studentId,
           name: name,
           email: email,
           enrollment: enrollment,
-          branch: branch,
+          branch: Branch(id: branch['id'], name: branch['name']),
           year: year,
-          subjects: subjects,
         );
         loadedStudent.add(student);
       });
