@@ -12,8 +12,8 @@ import '../models/subject.dart';
 class Classes with ChangeNotifier {
   List<Class> _classes = [];
 
-
-  Future<void> addClass(Subject subject, Branch branch, List<Student?> students) async {
+  Future<void> addClass(
+      Subject subject, Branch branch, List<Student?> students) async {
     try {
       final Uri uri = Uri.parse(
           "https://attendance-manager-413cc-default-rtdb.firebaseio.com/classes.json");
@@ -21,16 +21,14 @@ class Classes with ChangeNotifier {
       final response = await http.post(uri,
           body: json.encode({
             'subject': {
-              'id':subject.id,
-              'subjectName':subject.subjectName,
-              'subjectCode':subject.subjectCode,
+              'id': subject.id,
+              'subjectName': subject.subjectName,
+              'subjectCode': subject.subjectCode,
             },
-            'branch': {
-              'id':branch.id,
-              'name':branch.name
-            },
-            'students':students.map((e){
+            'branch': {'id': branch.id, 'name': branch.name},
+            'students': students.map((e) {
               return {
+                'id': e?.id,
                 'name': e?.name,
                 'email': e?.email,
                 'enrollment': e?.enrollment,
@@ -43,7 +41,7 @@ class Classes with ChangeNotifier {
             }).toList()
           }));
       final responseData = json.decode(response.body);
-      if(responseData['error']!=null){
+      if (responseData['error'] != null) {
         throw HttpException(responseData['error']['message']);
       }
       // _classes.add(Class(responseData['name'],subject, branch, students.toList()));
@@ -54,7 +52,8 @@ class Classes with ChangeNotifier {
   }
 
   //TODO: incomplete method
-  Future<void> updateClass(String id, String subjectCode, String subjectName) async {
+  Future<void> updateClass(
+      String id, String subjectCode, String subjectName) async {
     try {
       final index = _classes.indexWhere((element) => element.id == id);
       final Uri uri = Uri.parse(
@@ -74,16 +73,47 @@ class Classes with ChangeNotifier {
 
   Future<void> fetchClasses() async {
     try {
-      final url = Uri.parse('https://attendance-manager-413cc-default-rtdb.firebaseio.com/classes.json');
+      final url = Uri.parse(
+          'https://attendance-manager-413cc-default-rtdb.firebaseio.com/classes.json');
       final response = await http.get(url);
       List<Class> loadedClasses = [];
       final data = json.decode(response.body) as Map<String, dynamic>;
-      if (data!= null){
+      if (data != null) {
         data.forEach((id, data) {
-          final subject = data['subject'] as Subject;
-          final branch = data['branch'] as Branch;
-          final students = data['students'] as List<Student>;
-          final class_ = Class(id, subject, branch, students);
+          final subject = data['subject'];
+          final branch = data['branch'];
+          final students = data['students'] as List<dynamic>;
+
+          List<Student> s = [];
+
+          students.forEach((student) {
+            s.add(
+              Student(
+                id: student['id'],
+                name: student['name'],
+                enrollment: student['enrollment'],
+                email: student['email'],
+                branch: Branch(
+                  id: student['branch']['id'],
+                  name: student['branch']['name'],
+                ),
+                year: student['year'],
+              ),
+            );
+          });
+
+          final class_ = Class(
+              id,
+              Subject(
+                id: subject['id'],
+                subjectCode: subject['subjectCode'],
+                subjectName: subject['subjectName'],
+              ),
+              Branch(
+                id: branch['id'],
+                name: branch['name'],
+              ),
+              s);
           loadedClasses.add(class_);
         });
         _classes = loadedClasses;
@@ -94,7 +124,7 @@ class Classes with ChangeNotifier {
     }
   }
 
-  List<Class> get classes{
+  List<Class> get classes {
     return [..._classes];
   }
 
@@ -108,7 +138,7 @@ class Classes with ChangeNotifier {
       final Uri uri = Uri.parse(
           "https://attendance-manager-413cc-default-rtdb.firebaseio.com/classes/$classID.json");
       final response = await http.delete(uri);
-      if(response.statusCode>=400){
+      if (response.statusCode >= 400) {
         _classes.insert(index, existingSubject);
         notifyListeners();
         throw HttpException('Could not delete subject');
@@ -117,5 +147,4 @@ class Classes with ChangeNotifier {
       rethrow;
     }
   }
-
 }

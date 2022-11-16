@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/auth.dart';
+import 'package:shop_app/screens/faculty_screen/faculty_panel.dart';
 
 import 'admin_screens/admin.dart';
 
@@ -91,11 +92,14 @@ class _UserLoginState extends State<UserLogin> {
               .verifyCredentials(password)) {
             var providerTag =
                 Provider.of<Auth>(context, listen: false).tag.toString();
+            String screenName = '/auth';
             if (providerTag == 'FACULTY') {
+              screenName = FacultyPanel.routeName;
             } else if (providerTag == 'STUDENT') {
             } else if (providerTag == 'ADMIN') {
-              Navigator.of(context).pushReplacementNamed(AdminPanel.routeName);
+              screenName = AdminPanel.routeName;
             }
+            Navigator.of(context).pushReplacementNamed(screenName);
           } else {
             showAlertDialog("Invalid credentials for the user.");
           }

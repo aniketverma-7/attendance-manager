@@ -18,6 +18,7 @@ import 'package:shop_app/screens/admin_screens/view_faculty.dart';
 import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
 import 'package:shop_app/screens/change_password.dart';
+import 'package:shop_app/screens/faculty_screen/faculty_panel.dart';
 
 import 'screens/authScreen.dart';
 
@@ -65,6 +66,8 @@ class MyApp extends StatelessWidget {
           ClassScreen.routeName: (ctx)=> ClassScreen(),
           ChangePasswordScreen.routeName: (ctx)=> ChangePasswordScreen(),
           AdminPanel.routeName: (ctx)=> AdminPanel(),
+          UserLogin.routeName: (ctx)=> UserLogin(),
+          FacultyPanel.routeName: (ctx)=> FacultyPanel(),
         },
       ),
     );

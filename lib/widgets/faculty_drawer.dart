@@ -1,41 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shop_app/screens/admin_screens/add_edit_classes.dart';
 import 'package:shop_app/screens/change_password.dart';
 
 import '../providers/auth.dart';
 import '../screens/authScreen.dart';
 
-class AdminDrawer extends StatelessWidget {
+class FacultyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: <Widget>[
-          const DrawerHeader(
-              decoration: BoxDecoration(
+          DrawerHeader(
+              decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text(
-                'Department of Computer Science and Information Technology',
-                style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              )),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Department Details'),
-            onTap: () {},
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.library_books),
-            title: const Text('Add Classes'),
-            onTap: () {
-              Navigator.of(context).pushNamed(ClassScreen.routeName);
-            },
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Department of Computer Science and Information Technology',
+                    style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                  Spacer(),
+                  Text('Username: ${Provider.of<Auth>(context, listen: false).userName}',
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white70),
+                  )
+                ],
+              ),),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.password),

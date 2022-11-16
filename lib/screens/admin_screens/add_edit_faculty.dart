@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:multiselect_formfield/multiselect_formfield.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/models/faculty.dart';
-import 'package:shop_app/models/subject.dart';
+import 'package:shop_app/providers/class_provider.dart';
 import 'package:shop_app/providers/faculty_provider.dart';
-import 'package:shop_app/providers/subject_provider.dart';
+
+import '../../models/class.dart';
 
 class FacultyScreen extends StatefulWidget {
   static const routeName = '/add-faculty';
@@ -16,13 +19,17 @@ class FacultyScreen extends StatefulWidget {
 class _FacultyScreenState extends State<FacultyScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  var _isLoading = false;
+  var _isLoading = true;
   var _isInit = false;
+  List<Class> loadedClasses = [];
+
+  List<Class> classList = [];
 
   var _faculty = Faculty(
     id: "",
     name: "",
     email: "",
+    classes: [],
   );
 
   @override
@@ -30,6 +37,19 @@ class _FacultyScreenState extends State<FacultyScreen> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     if (!_isInit) {
+      bool e = false;
+      var provider = Provider.of<Classes>(context, listen: false);
+      provider.fetchClasses().catchError((error) {
+        e = true;
+        showAlertDialog(error.toString());
+      }).then((_) {
+        if (!e) {
+          loadedClasses = provider.classes;
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
       final faculty = ModalRoute.of(context)!.settings.arguments;
       if (faculty != null) {
         _faculty = faculty as Faculty;
@@ -38,12 +58,6 @@ class _FacultyScreenState extends State<FacultyScreen> {
     }
   }
 
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  //   _subjectCodeFocusNode.dispose();
-  // }
-
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -51,96 +65,53 @@ class _FacultyScreenState extends State<FacultyScreen> {
         _isLoading = true;
       });
       if (_faculty.id.isNotEmpty) {
-        updateFaculty();
+        afterFuture(
+            Provider.of<Faculties>(context, listen: false)
+                .updateFaculty(_faculty.id, _faculty.name, _faculty.email, classList),
+            'Faculty record updated');
       } else {
-        addFaculty();
+        afterFuture(
+            Provider.of<Faculties>(context, listen: false)
+                .addFaculty(_faculty.name, _faculty.email, classList),
+            'Faculty record added');
       }
     }
   }
 
-  void updateFaculty() {
-    bool e = false;
-    Provider.of<Faculties>(context, listen: false)
-        .updateFaculty(_faculty.id, _faculty.name, _faculty.email)
-        .catchError((error) {
-      e = true;
-      return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                title: const Text('Error while updating faculty record'),
-                content: const Text('Try again later'),
-                actions: [
-                  FlatButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                      },
-                      child: const Text('Dismiss')),
-                ],
-              ));
+  void afterFuture(future, title) {
+    bool error = false;
+    future = future as Future<void>;
+    future.catchError((error) {
+      print(error);
+      error = true;
+      return showAlertDialog('Server error :(');
     }).then((_) {
       setState(() {
         _isLoading = false;
       });
     }).then((_) {
-      if (!e) {
-        return showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-                  title: const Text('Faculty Record Updated'),
-                  actions: [
-                    FlatButton(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          Navigator.of(ctx).pop();
-                        },
-                        child: const Text('Dismiss')),
-                  ],
-                ));
+      if (!error) {
+        return showAlertDialog(title);
       }
     });
   }
 
-  void addFaculty() {
-    bool e = false;
-    Provider.of<Faculties>(context, listen: false)
-        .addFaculty(_faculty.name, _faculty.email)
-        .catchError((error) {
-      e = true;
-      return showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-                title: const Text('Error while adding faculty'),
-                content: const Text('Try again later'),
-                actions: [
-                  FlatButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        Navigator.of(ctx).pop();
-                      },
-                      child: const Text('Dismiss')),
-                ],
-              ));
-    }).then((_) {
-      setState(() {
-        _isLoading = false;
-      });
-    }).then((_) {
-      if (!e) {
-        return showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-                  title: const Text('Faculty Added'),
-                  actions: [
-                    FlatButton(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          Navigator.of(ctx).pop();
-                        },
-                        child: const Text('Dismiss')),
-                  ],
-                ));
-      }
-    });
+  Future showAlertDialog(String title) {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text(title),
+              content:
+                  Text((title.contains('Server')) ? 'Try again later' : ''),
+              actions: [
+                FlatButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('Dismiss')),
+              ],
+            ));
   }
 
   @override
@@ -174,9 +145,6 @@ class _FacultyScreenState extends State<FacultyScreen> {
                   ),
                   textInputAction: TextInputAction.next,
                   initialValue: _faculty.name,
-                  onFieldSubmitted: (_) {
-                    // FocusScope.of(context).requestFocus(_subjectCodeFocusNode);
-                  },
                   validator: (value) {
                     return null;
                   },
@@ -185,6 +153,7 @@ class _FacultyScreenState extends State<FacultyScreen> {
                       id: _faculty.id,
                       name: value.toString(),
                       email: _faculty.email,
+                      classes: _faculty.classes
                     );
                   },
                 ),
@@ -205,7 +174,49 @@ class _FacultyScreenState extends State<FacultyScreen> {
                         id: _faculty.id,
                         name: _faculty.name,
                         email: value.toString(),
+                        classes: _faculty.classes
                       );
+
+                    },
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.all(10),
+                  child: MultiSelectDialogField(
+                    title: const Text('Appoint Classes'),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    items: loadedClasses.map((c){
+                      return MultiSelectItem(c,"${c.subject.subjectName} ${c.subject.subjectCode}");
+                    }).toList(),
+                    listType: MultiSelectListType.LIST,
+                    onConfirm: (values) {
+                      classList = values.map((e){
+                        return e as Class;
+                      }).toList();
+                      _faculty = Faculty(
+                          id: _faculty.id,
+                          name: _faculty.name,
+                          email: _faculty.email,
+                          classes: classList
+                      );
+                    },
+                    onSelectionChanged: (values){
+                      if(values.length != classList.length){
+                        classList = values.map((e){
+                          return e as Class;
+                        }).toList();
+                        _faculty = Faculty(
+                            id: _faculty.id,
+                            name: _faculty.name,
+                            email: _faculty.email,
+                            classes: classList
+                        );
+                      }
                     },
                   ),
                 ),

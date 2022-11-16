@@ -9,4 +9,9 @@ class Class{
   List<Student> students;
 
   Class(this.id,this.subject, this.branch, this.students);
+
+  @override
+  String toString() {
+    return 'Class{id: $id, subject: $subject, branch: $branch, students: $students}';
+  }
 }
