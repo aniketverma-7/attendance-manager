@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shop_app/models/student.dart';
 import 'package:shop_app/models/subject.dart';
 
 class ClassCard extends StatelessWidget {
   final Subject subject;
-  ClassCard(this.subject);
+  final Function onClick;
+  ClassCard(this.subject,this.onClick);
 
 
   @override
@@ -12,6 +14,7 @@ class ClassCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(5),
       child: InkWell(
         onTap: () {
+          onClick(subject);
         },
         child: Card(
           elevation: 5,

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/attendance_provider.dart';
 import 'package:shop_app/providers/auth.dart';
 import 'package:shop_app/providers/branch_provider.dart';
 import 'package:shop_app/providers/class_provider.dart';
@@ -18,6 +19,7 @@ import 'package:shop_app/screens/admin_screens/view_faculty.dart';
 import 'package:shop_app/screens/admin_screens/view_students.dart';
 import 'package:shop_app/screens/admin_screens/view_subject.dart';
 import 'package:shop_app/screens/change_password.dart';
+import 'package:shop_app/screens/faculty_screen/attendance_screen.dart';
 import 'package:shop_app/screens/faculty_screen/faculty_panel.dart';
 
 import 'screens/authScreen.dart';
@@ -38,6 +40,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => Branches()),
         ChangeNotifierProvider(create: (context) => Classes()),
         ChangeNotifierProvider(create: (context) => Auth()),
+        ChangeNotifierProvider(create: (context) => AttendanceProvider()),
       ],
       child: MaterialApp(
         title: 'Attendance Manager',
@@ -68,6 +71,7 @@ class MyApp extends StatelessWidget {
           AdminPanel.routeName: (ctx)=> AdminPanel(),
           UserLogin.routeName: (ctx)=> UserLogin(),
           FacultyPanel.routeName: (ctx)=> FacultyPanel(),
+          AttendanceScreen.routeName: (ctx)=> AttendanceScreen(),
         },
       ),
     );
