@@ -30,58 +30,58 @@ class _FacultyPanelState extends State<FacultyPanel> {
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
-    super.didChangeDependencies();
-    if (!_isInit) {
-      final username = Provider.of<Auth>(context, listen: false).userName;
-      setState(() {
-        _isLoading = true;
-      });
-      Provider.of<Faculties>(context, listen: false)
-          .fetchFacultyByUsername(username)
-          .catchError((error) {
-        e = true;
-        showAlertDialog(error.toString());
-      }).then((_) {
-        if (!e) {
-          faculty = Provider.of<Faculties>(context, listen: false).faculties[0];
-          final classes = faculty.classes;
-          if (classes != null) {
-            classes.forEach((e) {
-              List<Student> students = [];
-              final branch = Branch(
-                id: e['branch']['id'],
-                name: e['branch']['name'],
-              );
-
-              final subject = Subject(
-                id: e['subject']['id'],
-                subjectName: e['subject']['subjectName'],
-                subjectCode: e['subject']['subjectCode'],
-              );
-
-              final s = e['students'] as List<dynamic>;
-              s.forEach((element) {
-                final student = Student(
-                  id: element['id'],
-                  name: element['name'],
-                  enrollment: element['enrollment'],
-                  email: element['email'],
-                  branch: branch,
-                  year: element['year'],
-                );
-                students.add(student);
-              });
-              subjects.add(subject);
-              subjectStudentMap[subject] = students;
-            });
-          }
-        }
-        setState(() {
-          _isLoading = false;
-        });
-      });
-      _isInit = true;
-    }
+    // super.didChangeDependencies();
+    // if (!_isInit) {
+    //   final username = Provider.of<Auth>(context, listen: false).userName;
+    //   setState(() {
+    //     _isLoading = true;
+    //   });
+    //   Provider.of<Faculties>(context, listen: false)
+    //       .fetchFacultyByUsername(username)
+    //       .catchError((error) {
+    //     e = true;
+    //     showAlertDialog(error.toString());
+    //   }).then((_) {
+    //     if (!e) {
+    //       faculty = Provider.of<Faculties>(context, listen: false).faculties[0];
+    //       final classes = faculty.classes;
+    //       if (classes != null) {
+    //         classes.forEach((e) {
+    //           List<Student> students = [];
+    //           final branch = Branch(
+    //             id: e['branch']['id'],
+    //             name: e['branch']['name'],
+    //           );
+    //
+    //           final subject = Subject(
+    //             id: e['subject']['id'],
+    //             subjectName: e['subject']['subjectName'],
+    //             subjectCode: e['subject']['subjectCode'],
+    //           );
+    //
+    //           final s = e['students'] as List<dynamic>;
+    //           s.forEach((element) {
+    //             final student = Student(
+    //               id: element['id'],
+    //               name: element['name'],
+    //               enrollment: element['enrollment'],
+    //               email: element['email'],
+    //               branch: branch,
+    //               year: element['year'],
+    //             );
+    //             students.add(student);
+    //           });
+    //           subjects.add(subject);
+    //           subjectStudentMap[subject] = students;
+    //         });
+    //       }
+    //     }
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //   });
+    //   _isInit = true;
+    // }
   }
 
   Future showAlertDialog(String title) {

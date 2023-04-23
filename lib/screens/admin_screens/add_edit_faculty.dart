@@ -8,6 +8,8 @@ import 'package:shop_app/providers/class_provider.dart';
 import 'package:shop_app/providers/faculty_provider.dart';
 
 import '../../models/class.dart';
+import '../../providers/student_provider.dart';
+import '../../providers/subject_provider.dart';
 
 class FacultyScreen extends StatefulWidget {
   static const routeName = '/add-faculty';
@@ -19,7 +21,7 @@ class FacultyScreen extends StatefulWidget {
 class _FacultyScreenState extends State<FacultyScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  var _isLoading = true;
+  var _isLoading = false;
   var _isInit = false;
   List<Class> loadedClasses = [];
 
@@ -32,24 +34,42 @@ class _FacultyScreenState extends State<FacultyScreen> {
     classes: [],
   );
 
+  /**
+   * TODO: student and subject data is fetched, batch them and then assign classes to the faculty.
+   */
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     if (!_isInit) {
-      bool e = false;
+      bool err = false;
+      var subjectProvider = Provider.of<Subjects>(context, listen: false);
       var provider = Provider.of<Classes>(context, listen: false);
-      provider.fetchClasses().catchError((error) {
-        e = true;
-        showAlertDialog(error.toString());
+      var studentProvider = Provider.of<Students>(context, listen: false);
+
+      studentProvider.fetchStudent().catchError((error) {
+        err = true;
       }).then((_) {
-        if (!e) {
-          loadedClasses = provider.classes;
-          setState(() {
-            _isLoading = false;
+        if (!err) {
+          subjectProvider.fetchSubjects().catchError((error) {
+            err = true;
+          }).then((_) {
+            if (!err) {
+              provider.fetchClasses().catchError((error) {
+                err = true;
+              }).then((_) {
+                if (!err) {
+                  loadedClasses = provider.classes;
+                }
+              });
+            }
           });
         }
+        setState(() {
+          _isLoading = false;
+        });
       });
+
       final faculty = ModalRoute.of(context)!.settings.arguments;
       if (faculty != null) {
         _faculty = faculty as Faculty;
@@ -59,23 +79,23 @@ class _FacultyScreenState extends State<FacultyScreen> {
   }
 
   void _saveForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      setState(() {
-        _isLoading = true;
-      });
-      if (_faculty.id.isNotEmpty) {
-        afterFuture(
-            Provider.of<Faculties>(context, listen: false)
-                .updateFaculty(_faculty.id, _faculty.name, _faculty.email, classList),
-            'Faculty record updated');
-      } else {
-        afterFuture(
-            Provider.of<Faculties>(context, listen: false)
-                .addFaculty(_faculty.name, _faculty.email, classList),
-            'Faculty record added');
-      }
-    }
+    // if (_formKey.currentState!.validate()) {
+    //   _formKey.currentState!.save();
+    //   setState(() {
+    //     _isLoading = true;
+    //   });
+    //   if (_faculty.id.isNotEmpty) {
+    //     afterFuture(
+    //         Provider.of<Faculties>(context, listen: false)
+    //             .updateFaculty(_faculty.id, _faculty.name, _faculty.email, classList),
+    //         'Faculty record updated');
+    //   } else {
+    //     afterFuture(
+    //         Provider.of<Faculties>(context, listen: false)
+    //             .addFaculty(_faculty.name, _faculty.email, classList),
+    //         'Faculty record added');
+    //   }
+    // }
   }
 
   void afterFuture(future, title) {
@@ -150,11 +170,10 @@ class _FacultyScreenState extends State<FacultyScreen> {
                   },
                   onSaved: (value) {
                     _faculty = Faculty(
-                      id: _faculty.id,
-                      name: value.toString(),
-                      email: _faculty.email,
-                      classes: _faculty.classes
-                    );
+                        id: _faculty.id,
+                        name: value.toString(),
+                        email: _faculty.email,
+                        classes: _faculty.classes);
                   },
                 ),
                 Container(
@@ -171,51 +190,47 @@ class _FacultyScreenState extends State<FacultyScreen> {
                     },
                     onSaved: (value) {
                       _faculty = Faculty(
-                        id: _faculty.id,
-                        name: _faculty.name,
-                        email: value.toString(),
-                        classes: _faculty.classes
-                      );
-
+                          id: _faculty.id,
+                          name: _faculty.name,
+                          email: value.toString(),
+                          classes: _faculty.classes);
                     },
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.all(10),
+                  margin: const EdgeInsets.symmetric(vertical: 10),
                   child: MultiSelectDialogField(
                     title: const Text('Appoint Classes'),
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        width: 1,
-                      ),
+                      border: Border.all(width: 0.8, color: Colors.grey),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    items: loadedClasses.map((c){
-                      return MultiSelectItem(c,"${c.subject.subjectName} ${c.subject.subjectCode}");
+                    items: loadedClasses.map((c) {
+                      return MultiSelectItem(c,
+                          "${c.subject.subjectName} ${c.subject.subjectCode}");
+                      //add details for which branch does this class belongs
                     }).toList(),
                     listType: MultiSelectListType.LIST,
                     onConfirm: (values) {
-                      classList = values.map((e){
+                      classList = values.map((e) {
                         return e as Class;
                       }).toList();
                       _faculty = Faculty(
                           id: _faculty.id,
                           name: _faculty.name,
                           email: _faculty.email,
-                          classes: classList
-                      );
+                          classes: classList);
                     },
-                    onSelectionChanged: (values){
-                      if(values.length != classList.length){
-                        classList = values.map((e){
+                    onSelectionChanged: (values) {
+                      if (values.length != classList.length) {
+                        classList = values.map((e) {
                           return e as Class;
                         }).toList();
                         _faculty = Faculty(
                             id: _faculty.id,
                             name: _faculty.name,
                             email: _faculty.email,
-                            classes: classList
-                        );
+                            classes: classList);
                       }
                     },
                   ),

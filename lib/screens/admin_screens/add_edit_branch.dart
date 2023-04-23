@@ -123,6 +123,12 @@ class _BranchScreenState extends State<BranchScreen> {
                     textInputAction: TextInputAction.next,
                     initialValue: _branch.name,
                     validator: (value) {
+                      if(value.toString().isEmpty) {
+                        return "Empty field";
+                      }else if(value.toString().length < 10){
+                        return "Invalid branch name, branch name should be at least 10 character long.";
+                      }
+
                       return null;
                     },
                     onSaved: (value) {

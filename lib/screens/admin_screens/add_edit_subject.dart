@@ -193,9 +193,12 @@ class _AddSubjectState extends State<AddSubject> {
                     validator: (value) {
                       if (value.toString().isEmpty) {
                         return "Subject code is required";
-                      } else if (value.toString().length < 3) {
-                        return "Enter valid subject code";
+                      } else if (value.toString().length != 5) {
+                        return "Enter valid subject code of length 5";
+                      } else if (!_checkEnrollmentPattern(value.toString())) {
+                        return "Entered is not valid/correct format is AB123";
                       }
+
                       return null;
                     },
                     onSaved: (value) {
@@ -221,5 +224,28 @@ class _AddSubjectState extends State<AddSubject> {
         ),
       ),
     );
+  }
+
+  bool _checkEnrollmentPattern(String v) {
+    String initial = v.substring(0, 2);
+    String number = v.substring(2);
+    const validInitial = [
+      "AT",
+      "AU",
+      "CE",
+      "CS",
+      "CM",
+      "EC",
+      "EE",
+      "EX",
+      "FT",
+      "IT",
+      "ME",
+      "MI",
+      "CO",
+      "CT",
+      "CI"
+    ];
+    return (validInitial.contains(initial) && int.tryParse(number) is int);
   }
 }

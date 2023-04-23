@@ -116,7 +116,7 @@ class _ClassScreenState extends State<ClassScreen> {
 
   List<Student?> filterStudentByBranch() {
     return students.map((e) {
-      if(e.branch.name == selectedBranch.name){
+      if(e.branchID == selectedBranch.id){
        return e;
       }
     }).toList();

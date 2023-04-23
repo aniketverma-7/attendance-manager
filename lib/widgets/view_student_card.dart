@@ -13,11 +13,11 @@ class StudentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-        key: ValueKey(_student.id),
+        key: ValueKey(_student.enrollment),
         direction: DismissDirection.endToStart,
         onDismissed: (direction) {
           Provider.of<Students>(context, listen: false)
-              .removeStudent(_student.id);
+              .removeStudent(_student.enrollment);
         },
         confirmDismiss: (direction) {
           return showDialog(

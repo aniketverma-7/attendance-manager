@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 
 import '../models/branch.dart';
 import '../models/http_exception.dart';
-import '../models/subject.dart';
 
 class Branches with ChangeNotifier {
   List<Branch> _branches = [];

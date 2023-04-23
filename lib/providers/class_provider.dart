@@ -20,23 +20,11 @@ class Classes with ChangeNotifier {
 
       final response = await http.post(uri,
           body: json.encode({
-            'subject': {
-              'id': subject.id,
-              'subjectName': subject.subjectName,
-              'subjectCode': subject.subjectCode,
-            },
-            'branch': {'id': branch.id, 'name': branch.name},
+            'subject': subject.id,
+            'branch': branch.id,
             'students': students.map((e) {
               return {
-                'id': e?.id,
-                'name': e?.name,
-                'email': e?.email,
                 'enrollment': e?.enrollment,
-                'branch': {
-                  'id': e?.branch.id,
-                  'name': e?.branch.name,
-                },
-                'year': e?.year,
               };
             }).toList()
           }));
@@ -80,41 +68,37 @@ class Classes with ChangeNotifier {
       final data = json.decode(response.body) as Map<String, dynamic>;
       if (data != null) {
         data.forEach((id, data) {
-          final subject = data['subject'];
-          final branch = data['branch'];
+          final subjectID = data['subject'];
+          final branchID = data['branch'];
           final students = data['students'] as List<dynamic>;
 
           List<Student> s = [];
+          print("$subjectID $branchID ${students}");
+          // students.forEach((student) {
+          //   s.add(
+          //     Student(
+          //       name: student['name'],
+          //       enrollment: student['enrollment'],
+          //       email: student['email'],
+          //       branchID: student['branch']['id'],
+          //       year: student['year'],
+          //     ),
+          //   );
+          // });
 
-          students.forEach((student) {
-            s.add(
-              Student(
-                id: student['id'],
-                name: student['name'],
-                enrollment: student['enrollment'],
-                email: student['email'],
-                branch: Branch(
-                  id: student['branch']['id'],
-                  name: student['branch']['name'],
-                ),
-                year: student['year'],
-              ),
-            );
-          });
-
-          final class_ = Class(
-              id,
-              Subject(
-                id: subject['id'],
-                subjectCode: subject['subjectCode'],
-                subjectName: subject['subjectName'],
-              ),
-              Branch(
-                id: branch['id'],
-                name: branch['name'],
-              ),
-              s);
-          loadedClasses.add(class_);
+          // final class_ = Class(
+          //     id,
+          //     Subject(
+          //       id: subject['id'],
+          //       subjectCode: subject['subjectCode'],
+          //       subjectName: subject['subjectName'],
+          //     ),
+          //     Branch(
+          //       id: branch['id'],
+          //       name: branch['name'],
+          //     ),
+          //     s);
+          // loadedClasses.add(class_);
         });
         _classes = loadedClasses;
         notifyListeners();

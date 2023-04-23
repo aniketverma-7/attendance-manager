@@ -9,15 +9,10 @@ class AttendanceProvider extends ChangeNotifier {
   Future<void> addAttendance(Attendance attendance) async {
     try {
       final Uri uri = Uri.parse(
-          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/attendance.json");
+          "https://attendance-manager-413cc-default-rtdb.firebaseio.com/attendance/${attendance.enrollment}.json");
       await http.post(uri,
             body: json.encode({
-              'enrollment': attendance.enrollment,
-              'subject': {
-                'id': attendance.subject.id,
-                'subjectName': attendance.subject.subjectName,
-                'subjectCode': attendance.subject.subjectCode,
-              },
+              'subject': attendance.subject.id,
               'status': attendance.status,
               'dateTime': attendance.dateTime.toString(),
             }));
